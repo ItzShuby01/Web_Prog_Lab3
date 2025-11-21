@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module xmlns="urn:jboss:module:1.9" name="org.postgresql">
+    <resources>
+        <resource-root path="postgresql-42.6.0.jar"/>
+    </resources>
+
+    <dependencies>
+        <!-- CRITICAL: Provides the core JDBC classes -->
+        <module name="java.sql"/>
+
+        <!-- MANAGEMENT: Provides JMX/Monitoring classes (java.lang.management) -->
+        <module name="java.management"/>
+
+        <!-- NEW REQUIREMENT: Provides SCRAM/SASL authentication classes (javax.security.sasl) -->
+        <module name="java.sasl"/>
+
+        <!-- Standard Jakarta EE APIs needed for JCA/Driver integration -->
+        <module name="jakarta.transaction.api"/>
+        <module name="jakarta.xml.bind.api"/>
+
+        <!-- Optional, but generally safe and useful in an EAP environment -->
+        <module name="jakarta.servlet.api" optional="true"/>
+    </dependencies>
+</module>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>LAB3 Start Page</title>
+    <h:outputStylesheet library="css" name="style.css"/>
+</h:head>
+
+<h:body style="background-color: #1e1e1e; color: #f0f0f0; font-family: Arial, sans-serif;">
+
+    <div style="max-width: 800px; margin: 50px auto; padding: 30px; background: #2d2d2d; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);">
+
+        <!-- Header -->
+        <h:panelGroup layout="block" style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #555;">
+            <h1 style="color: #60a5fa; margin: 0; font-size: 2.5em;">Check Point On a Graph (JSF) </h1>
+            <h2 style="color: #a3e635; margin: 5px 0 0;">Student Info:</h2>
+            <p style="font-size: 1.1em; color: #ccc;">
+                Name: SHU'AIBU IDRIS
+                Group: P3231
+                Variant: 3221
+            </p>
+        </h:panelGroup>
+
+        <!-- Interactive Clock  -->
+        <h:panelGroup layout="block" style="text-align: center; margin-top: 30px; padding: 20px; border: 1px dashed #60a5fa; border-radius: 8px;">
+            <h3 style="color: #e0f2fe; margin-top: 0;">Current Time:</h3>
+
+            <!-- p:poll trigger an AJAX update every 10,000 milliseconds (10 seconds) -->
+            <p:poll interval="10" update="currentDateTimeDisplay" />
+
+            <!-- Display the time from the Application-Scoped ClockBean -->
+            <h:outputText id="currentDateTimeDisplay"
+                          value="#{clockBean.currentDateTime}"
+                          style="font-size: 2em; font-weight: bold; color: #facc15;" />
+        </h:panelGroup>
+
+        <!-- Link to Main Page -->
+        <div style="text-align: center; margin-top: 40px;">
+            <h:link outcome="to_main" styleClass="p-button p-button-success" style="padding: 15px 30px; text-decoration: none; font-size: 1.2em; border-radius: 8px; transition: background-color 0.3s;">
+                Go to Main Application Page
+            </h:link>
+        </div>
+
+    </div>
+
+</h:body>
+</html>

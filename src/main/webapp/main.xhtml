@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>LAB3 Area Checker</title>
+    <h:outputStylesheet library="css" name="style.css"/>
+    <h:outputScript library="js" name="script.js"/>
+</h:head>
+
+<h:body style="background-color: #1e1e1e; color: #f0f0f0; font-family: Arial, sans-serif;">
+    <f:loadBundle basename="messages" var="msg"/>
+
+    <div style="max-width: 1200px; margin: 20px auto; padding: 30px; background: #2d2d2d; border-radius: 12px;">
+        <h1 style="color: #60a5fa; text-align: center; border-bottom: 2px solid #555; padding-bottom: 15px;">Area Check Calculator</h1>
+
+        <div style="display: flex; gap: 30px; margin-top: 20px;">
+
+            <!-- Left Panel: Inputs -->
+            <div style="flex: 0 0 450px; background: #3c3c3c; padding: 20px; border-radius: 8px;">
+                <h:form id="form">
+                    <h2 style="color: #a3e635; margin-top: 0;">Input Parameters</h2>
+
+                    <!-- Messages -->
+                    <p:messages id="p-messages" showDetail="true" closable="true" style="margin-bottom: 10px;"/>
+
+                    <!-- HIDDEN INPUTS: Linked to InputBean -->
+                    <h:inputHidden id="canvas_x" value="#{inputBean.x}"/>
+                    <h:inputHidden id="canvas_y" value="#{inputBean.y}"/>
+                    <h:inputHidden id="canvas_r" value="#{inputBean.r}"/>
+                    <h:inputHidden id="is_canvas_submit" value="#{inputBean.canvasSubmission}"/>
+
+                    <p:remoteCommand name="processCanvasClick"
+                                     actionListener="#{checkBean.checkArea}"
+                                     update=":results-table-container form:p-messages :graph-panel"
+                                     process="@this canvas_x canvas_y canvas_r is_canvas_submit"
+                                     oncomplete="initGraph()" />
+
+
+                    <!-- R Value Selection -->
+                    <h:panelGroup layout="block" style="margin-bottom: 20px;">
+                        <h:outputLabel value="Radius R:" style="color: #ccc; display:block; margin-bottom:5px;"/>
+                        <h:selectOneRadio id="r_radio_group" value="#{inputBean.r}" layout="pageDirection" required="true">
+                            <f:selectItems value="#{inputBean.rOptions}" var="rVal" itemLabel="#{rVal}" itemValue="#{rVal}" />
+                            <f:validateLongRange minimum="1" maximum="5" />
+
+                            <!-- When R changes, update graph panel and redraw -->
+                            <p:ajax event="change" listener="#{inputBean.validateR}"
+                                    update="form:p-messages :graph-panel @form:canvas_r"
+                                    process="@this"
+                                    oncomplete="initGraph()" />
+                        </h:selectOneRadio>
+                    </h:panelGroup>
+
+                    <!-- Y Value Input -->
+                    <h:panelGroup layout="block" style="margin-bottom: 20px;">
+                        <h:outputLabel value="Y Coordinate (-3..5):" for="y_input" style="color: #ccc; display:block; margin-bottom:5px;"/>
+                        <p:inputText id="y_input" value="#{inputBean.y}" required="true" style="width: 100%;">
+                            <f:validateDoubleRange minimum="-3.0" maximum="5.0" />
+                        </p:inputText>
+                    </h:panelGroup>
+
+                    <!-- X Value Selection -->
+                    <h:panelGroup layout="block" style="margin-bottom: 20px;">
+                        <h:outputLabel value="X Coordinate:" style="color: #ccc; display:block; margin-bottom:5px;"/>
+                        <h:panelGrid columns="5">
+                            <ui:repeat value="#{inputBean.xOptions}" var="xVal">
+                                <p:commandButton value="#{xVal}" action="#{inputBean.setX(xVal)}"
+                                                 update="@form:x_display @form:p-messages @form:canvas_x"
+                                                 process="@this"
+                                                 styleClass="p-button-secondary p-button-sm"/>
+                            </ui:repeat>
+                        </h:panelGrid>
+                        <h:outputText id="x_display" value="Selected X: #{inputBean.x}" style="color: #facc15; font-weight: bold; display:block; margin-top:5px;"/>
+                    </h:panelGroup>
+
+                    <!-- Normal Form Submit Button -->
+                    <p:commandButton value="Check Area"
+                                     action="#{inputBean.setCanvasSubmission(false)}"
+                                     actionListener="#{checkBean.checkArea}"
+                                     update=":results-table-container form:p-messages :graph-panel"
+                                     process="@form"
+                                     oncomplete="initGraph()"
+                                     styleClass="p-button-primary" style="width: 100%; margin-top: 10px;"/>
+
+                    <div style="margin-top: 25px; text-align: center;">
+                        <h:link outcome="to_start" value="← Back to Start" style="color: #aaa; text-decoration: none;"/>
+                    </div>
+                </h:form>
+            </div>
+
+            <!-- Right Panel: Graph and Table -->
+            <div style="flex: 1;">
+
+                <!--
+                   GRAPH PANEL
+                   Using p:outputPanel ensures the whole block (canvas + data script)
+                   is replaced when updated via AJAX.
+                -->
+                <p:outputPanel id="graph-panel" layout="block" style="text-align: center; background: #3c3c3c; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+                    <h2 style="color: #a3e635; margin-top: 0;">Graph</h2>
+
+                    <canvas id="graph-canvas" width="400" height="400" style="background-color: #373737; border: 1px solid #60a5fa; cursor: crosshair;"></canvas>
+
+                    <!-- DATA INJECTION SCRIPT -->
+                    <!-- This runs every time 'graph-panel' is updated by AJAX -->
+                    <script>
+                        (function() {
+                            try {
+                                // Inject values from the Beans into global window variables
+                                window.currentR = parseFloat('#{inputBean.r}');
+                                window.currentPoints = JSON.parse('#{resultBean.pointsJson}');
+                            } catch (e) {
+                                console.error("Error parsing graph data:", e);
+                                window.currentPoints = [];
+                                window.currentR = 3.0; // Default fallback
+                            }
+
+                            // Re-draw the graph immediately
+                            if(typeof initGraph === 'function') {
+                                initGraph();
+                            }
+                        })();
+                    </script>
+                </p:outputPanel>
+
+                <!-- Results Table -->
+                <h:panelGroup id="results-table-container" layout="block">
+                    <h2 style="color: #e0f2fe;">Results</h2>
+                    <p:dataTable id="results-table" value="#{resultBean.results}" var="res"
+                                 emptyMessage="No results yet."
+                                 styleClass="p-datatable-striped">
+
+                        <p:column headerText="R"><h:outputText value="#{res.r}"/></p:column>
+                        <p:column headerText="X"><h:outputText value="#{res.x}"/></p:column>
+                        <p:column headerText="Y"><h:outputText value="#{res.y}"/></p:column>
+                        <p:column headerText="Result">
+                            <h:outputText value="#{res.hit ? 'Hit' : 'Miss'}"
+                                          style="color: #{res.hit ? '#4ade80' : '#ef4444'}; font-weight:bold;"/>
+                        </p:column>
+                        <p:column headerText="Exec (ms)"><h:outputText value="#{res.formattedExecutionTime}"/></p:column>
+                    </p:dataTable>
+                </h:panelGroup>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Draws graph on initial full page load -->
+    <script>
+        window.addEventListener('load', function() {
+           if(typeof initGraph === 'function') initGraph();
+        });
+    </script>
+</h:body>
+</html>
