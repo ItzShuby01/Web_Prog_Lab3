@@ -23,58 +23,55 @@ public class CheckAreaBean implements Serializable {
     @Inject
     private InputBean inputBean;
 
-    // The core action method triggered by the form submit or graph click.
-    // Implements dual validation path based on the submission source.
-    // Returns null to signal JSF to stay on the current view (main.xhtml).
-    public String checkArea() {
 
+    // Method for FORM Button Clicks only.
+    // Forces usage of Form X and Form Y.
+    public void checkForm() {
+        inputBean.setCanvasSubmission(false); // Reset flag
         try {
-            if (inputBean.isCanvasSubmission()) {
-                // If true, use the canvas validation rules
-                inputBean.validateCanvasInputs();
-            } else {
-                // otherwise, use the form validation rules
-                inputBean.validateFormInputs();
-            }
+            inputBean.validateFormInputs();
+            // STRICTLY use X and Y
+            processCalculation(inputBean.getX(), inputBean.getY(), inputBean.getR());
+        } catch (ValidationException e) {
+            addErrorMessage(e.getMessage());
+        }
+    }
 
-            //If Validation Passes, Proceed with Calculation
-            long startTime = System.nanoTime();
+    // Method for CANVAS Clicks only.
+    // Forces usage of CanvasX and CanvasY
+    public void checkCanvas() {
+        inputBean.setCanvasSubmission(true); // Set flag
+        try {
+            inputBean.validateCanvasInputs();
+            // STRICTLY use CanvasX and CanvasY
+            processCalculation(inputBean.getCanvasX(), inputBean.getCanvasY(), inputBean.getR());
+        } catch (ValidationException e) {
+            addErrorMessage(e.getMessage());
+        }
+    }
 
-            Double x = inputBean.getX();
-            Double y = inputBean.getY();
-            Double r = inputBean.getR();
-
-            // check before calculation
+    // Common logic to avoid code duplication
+    private void processCalculation(Double x, Double y, Double r) {
+        try {
             if (x == null || y == null || r == null) {
-                throw new ValidationException("Critical input values (X, Y, R) are missing after validation.");
+                throw new ValidationException("Critical input values are missing.");
             }
 
+            long startTime = System.nanoTime();
             boolean hit = AreaCalculator.calculate(x, y, r);
-
             long endTime = System.nanoTime();
-            long executionTime = endTime - startTime;
 
-            // Create and persist the result
-            CalculationResult newResult = new CalculationResult(x, y, r, hit, executionTime);
+            CalculationResult newResult = new CalculationResult(x, y, r, hit, (endTime - startTime));
             resultBean.addResult(newResult);
 
-        } catch (ValidationException e) {
-            // Catch validation exceptions thrown by InputBean and display them to the user
-            addErrorMessage(e.getMessage(), null); // Component ID is null to display error globally
-            return null;
         } catch (Exception e) {
-            addErrorMessage("An unexpected error occurred during calculation.", null);
-            return null;
+            addErrorMessage("An unexpected error occurred during calculation.");
         }
-
-        return null;
     }
 
     // Helper to add a FacesMessage bound to a specific component.
-    private void addErrorMessage(String message, String clientId) {
-        FacesContext.getCurrentInstance().addMessage(
-                clientId,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Invalid Input:", message)
-        );
+    private void addErrorMessage(String message) {
+        FacesContext.getCurrentInstance().addMessage(null,
+                new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error:", message));
     }
 }

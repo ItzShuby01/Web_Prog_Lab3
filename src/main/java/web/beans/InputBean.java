@@ -21,6 +21,10 @@ public class InputBean implements Serializable {
     private Double y;
     private Double r = 3.0;
 
+    // CANVAS INPUTS : so the hidden fields don't overwrite the form selection
+    private Double canvasX;
+    private Double canvasY;
+
     // Flag to differentiate submission source: true for canvas, false for main form
     private boolean isCanvasSubmission = false;
 
@@ -59,12 +63,12 @@ public class InputBean implements Serializable {
     // Validation specific to the canvas click (continuous X/Y within graph range).
     public void validateCanvasInputs() throws ValidationException {
         // X VALIDATION (must be between -5 and 5, based on the graph bounds)
-        if (x == null || x < -5.0 || x > 5.0) {
+        if (canvasX == null || canvasX < -5.0 || canvasX > 5.0) {
             throw new ValidationException("For canvas clicks, X must be between -5 and 5.");
         }
 
         // Y VALIDATION (must be between -5 and 5, based on the graph bounds)
-        if (y == null || y < -5.0 || y > 5.0) {
+        if (canvasY == null || canvasY < -5.0 || canvasY > 5.0) {
             throw new ValidationException("For canvas clicks, Y must be between -5 and 5.");
         }
 
@@ -84,6 +88,14 @@ public class InputBean implements Serializable {
 
     public Double getR() { return r; }
     public void setR(Double r) { this.r = r; }
+
+
+    // Getters/Setters for Canvas vars
+    public Double getCanvasX() { return canvasX; }
+    public void setCanvasX(Double canvasX) { this.canvasX = canvasX; }
+
+    public Double getCanvasY() { return canvasY; }
+    public void setCanvasY(Double canvasY) { this.canvasY = canvasY; }
 
     public boolean isCanvasSubmission() { return isCanvasSubmission; }
     public void setCanvasSubmission(boolean isCanvasSubmission) { this.isCanvasSubmission = isCanvasSubmission; }
