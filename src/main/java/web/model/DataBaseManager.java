@@ -9,9 +9,9 @@ import java.util.List;
 public class DataBaseManager {
 
     // My psql studs database credentials
-    private static final String URL = "jdbc:postgresql://localhost:5555/studs"; // Port 5555 for the tunnel
-    private static final String USER = "s463221";
-    private static final String PASSWORD = "2Z10XAAym4KIr3aR";
+    private static final String URL = "jdbc:postgresql://pg:5432/studs"; // "jdbc:postgresql://localhost:5555/studs"; // Port 5555 for the tunnel
+    private static final String USER = System.getenv("DB_USER");
+    private static final String PASSWORD =  System.getenv("DB_PASSWORD");
 
     private static final String CREATE_TABLE_SQL = """
         CREATE TABLE IF NOT EXISTS results (
@@ -39,6 +39,13 @@ public class DataBaseManager {
     }
 
     private Connection getConnection() throws SQLException {
+
+        if (USER == null || PASSWORD == null) {
+            System.err.println("Database credentials (DB_USER or DB_PASSWORD) are missing from environment variables.");
+            // Throwing a dedicated exception might be better in a production app
+            throw new SQLException("Missing database credentials in environment.");
+        }
+
         // Ensures the driver is loaded and returns a new connection
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
