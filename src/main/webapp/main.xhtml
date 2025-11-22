@@ -24,7 +24,7 @@
                 <h:form id="form">
                     <h2 style="color: #a3e635; margin-top: 0;">Input Parameters</h2>
 
-                    <p:messages id="p-messages" showDetail="true" closable="true" style="margin-bottom: 10px;"/>
+                    <p:messages id="p-messages" showDetail="true" showSummary="false" closable="true" style="margin-bottom: 10px;"/>
 
                     <!-- HIDDEN INPUTS -->
                     <h:inputHidden id="canvas_x" value="#{inputBean.canvasX}"/>
@@ -32,9 +32,7 @@
                     <h:inputHidden id="canvas_r" value="#{inputBean.r}"/>
                     <h:inputHidden id="is_canvas_submit" value="#{inputBean.canvasSubmission}"/>
 
-                    <!--
-                        Explicitly call checkCanvas
-                    -->
+                    <!-- CANVAS HANDLER -->
                     <p:remoteCommand name="processCanvasClick"
                                      actionListener="#{checkBean.checkCanvas}"
                                      update=":results-table-container form:p-messages :graph-panel"
@@ -64,13 +62,11 @@
                                      converterMessage="Y must be a number from -3 to 3"
                                      validatorMessage="Y must be a number from -3 to 3"
                                      requiredMessage="Please enter a Y value">
-
                             <f:validateDoubleRange minimum="-3.0" maximum="3.0" />
-
                         </p:inputText>
 
-                        <p:message for="y_input" display="text" showSummary="false" showDetail="true"
-                                   style="color: #ef4444; margin-top: 5px;"/>
+                        <p:message for="y_input" showSummary="true" showDetail="false"
+                                   style="color: #ef4444; margin-top: 5px; border: none; background: none; padding: 0;"/>
                     </h:panelGroup>
 
                     <!-- X Value Selection -->
@@ -87,11 +83,7 @@
                         <h:outputText id="x_display" value="Selected X: #{inputBean.x}" style="color: #facc15; font-weight: bold; display:block; margin-top:5px;"/>
                     </h:panelGroup>
 
-                    <!-- Normal Form Submit Button -->
-                    <!--
-                         Explicitly call checkForm.
-                         Removed 'action' coz the bean now handles the boolean flag.
-                    -->
+                    <!-- FORM SUBMIT BUTTON -->
                     <p:commandButton value="Check Area"
                                      actionListener="#{checkBean.checkForm}"
                                      update=":results-table-container form:p-messages :graph-panel"
@@ -105,7 +97,10 @@
                 </h:form>
             </div>
 
+            <!-- Right Panel: Graph and Table -->
             <div style="flex: 1;">
+
+                <!-- Graph (No Form Needed Here) -->
                 <p:outputPanel id="graph-panel" layout="block" style="text-align: center; background: #3c3c3c; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
                     <h2 style="color: #a3e635; margin-top: 0;">Graph</h2>
                     <canvas id="graph-canvas" width="400" height="400" style="background-color: #373737; border: 1px solid #60a5fa; cursor: crosshair;"></canvas>
@@ -115,31 +110,57 @@
                                 window.currentR = parseFloat('#{inputBean.r}');
                                 window.currentPoints = JSON.parse('#{resultBean.pointsJson}');
                             } catch (e) {
-                                console.error("Error parsing graph data:", e);
                                 window.currentPoints = [];
                                 window.currentR = 3.0;
                             }
-                            if(typeof initGraph === 'function') {
-                                initGraph();
-                            }
+                            if(typeof initGraph === 'function') initGraph();
                         })();
                     </script>
                 </p:outputPanel>
 
+                <!-- Results Table -->
                 <h:panelGroup id="results-table-container" layout="block">
-                    <h2 style="color: #e0f2fe;">Results</h2>
-                    <p:dataTable id="results-table" value="#{resultBean.results}" var="res"
-                                 emptyMessage="No results yet."
-                                 styleClass="p-datatable-striped">
-                        <p:column headerText="R"><h:outputText value="#{res.r}"/></p:column>
-                        <p:column headerText="X"><h:outputText value="#{res.x}"/></p:column>
-                        <p:column headerText="Y"><h:outputText value="#{res.y}"/></p:column>
-                        <p:column headerText="Result">
-                            <h:outputText value="#{res.hit ? 'Hit' : 'Miss'}"
-                                          style="color: #{res.hit ? '#4ade80' : '#ef4444'}; font-weight:bold;"/>
-                        </p:column>
-                        <p:column headerText="Exec (ms)"><h:outputText value="#{res.formattedExecutionTime}"/></p:column>
-                    </p:dataTable>
+
+                    <!--
+                        Wrapped this section in <h:form> to solve the Warning.
+                        The Clear button sends a POST request, so it must be in a form.
+                    -->
+                    <h:form id="resultsForm">
+
+                        <!-- Header & Clear Button -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h2 style="color: #e0f2fe; margin: 0;">Results</h2>
+
+                            <p:commandButton value="Clear Table"
+                                             actionListener="#{resultBean.clearResults}"
+                                             update="results-table :graph-panel :form:p-messages"
+                                             process="@this"
+                                             oncomplete="initGraph()"
+                                             styleClass="p-button-danger p-button-sm"
+                                             icon="pi pi-trash"/>
+                        </div>
+
+                        <p:dataTable id="results-table" value="#{resultBean.results}" var="res"
+                                     emptyMessage="No results yet."
+                                     styleClass="p-datatable-striped"
+                                     paginator="true" rows="5" paginatorPosition="bottom">
+
+                            <p:column headerText="R" width="40"><h:outputText value="#{res.r}"/></p:column>
+                            <p:column headerText="X"><h:outputText value="#{res.x}"/></p:column>
+                            <p:column headerText="Y"><h:outputText value="#{res.y}"/></p:column>
+
+                            <p:column headerText="Result">
+                                <h:outputText value="#{res.hit ? 'Hit' : 'Miss'}"
+                                              style="color: #{res.hit ? '#4ade80' : '#ef4444'}; font-weight:bold;"/>
+                            </p:column>
+
+                            <p:column headerText="Date &amp; Time" style="width: 160px;">
+                                <h:outputText value="#{res.formattedTimestamp}" style="font-size: 0.9em;"/>
+                            </p:column>
+
+                            <p:column headerText="Exec"><h:outputText value="#{res.formattedExecutionTime}"/></p:column>
+                        </p:dataTable>
+                    </h:form>
                 </h:panelGroup>
             </div>
         </div>

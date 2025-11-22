@@ -68,6 +68,17 @@ public class DataBaseManager {
         }
     }
 
+
+    // Deletes all records from the results table.
+    public void clearAllResults() {
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement("DELETE FROM results")) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error deleting results table: " + e.getMessage());
+        }
+    }
+
     public List<CalculationResult> loadAllResults() {
         List<CalculationResult> results = new ArrayList<>();
         try (Connection conn = getConnection();

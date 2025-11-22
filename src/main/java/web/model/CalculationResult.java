@@ -14,13 +14,11 @@ public class CalculationResult implements Serializable {
     private Double y;
     private Double r;
     private boolean hit;
-
-    //!! LocalDateTime -> transient to prevent the Java serialization from trying to serialize its complex internal fields
-    private transient LocalDateTime timestamp;
-
     private long executionTimeNanos;
+    private LocalDateTime timestamp;
 
-    // Formatter for display purposes
+
+    // Formatter for display purposes (Static to save memory)
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public CalculationResult() {

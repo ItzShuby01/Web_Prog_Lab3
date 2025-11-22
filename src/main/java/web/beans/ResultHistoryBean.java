@@ -1,6 +1,6 @@
 package web.beans;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;
@@ -8,6 +8,8 @@ import web.model.CalculationResult;
 import web.model.DataBaseManager;
 
 import java.io.Serializable;
+import java.lang.reflect.Type;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -43,6 +45,14 @@ public class ResultHistoryBean implements Serializable {
         results.add(0, result);
     }
 
+    // Clears all results from both the PostgreSQL database and the in-memory list.
+    public void clearResults() {
+        // First clear database
+        dao.clearAllResults();
+
+        // then clear in-memory list
+        results.clear();
+    }
 
     // Provides the list of results for display in the main page table (main.xhtml).
     public List<CalculationResult> getResults() {
@@ -51,8 +61,16 @@ public class ResultHistoryBean implements Serializable {
     }
 
     public String getPointsJson() {
-        // Using Gson to serialize the list of results into a JSON string
-        // Necessary because JSF cannot directly translate Java List to a JS array literal.
-        return new Gson().toJson(this.results);
+        // This converts the Date to a simple String preventing "Inaccessible" error.
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
+                    @Override
+                    public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+                        return new JsonPrimitive(src.toString());
+                    }
+                })
+                .create();
+
+        return gson.toJson(this.results);
     }
 }
