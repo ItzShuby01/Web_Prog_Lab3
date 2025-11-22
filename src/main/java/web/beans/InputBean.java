@@ -31,7 +31,7 @@ public class InputBean implements Serializable {
     // Allowed R Values
     private final List<Double> rOptions = Arrays.asList(1.0, 2.0, 3.0, 4.0, 5.0);
     // Allowed X values
-    private final List<Double> xOptions = Arrays.asList(-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0);
+    private final List<Double> xOptions = Arrays.asList(-5.0, -4.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0);
     private final Set<Double> xOptionsSet = xOptions.stream().collect(Collectors.toSet());
     private final Set<Double> rOptionsSet = rOptions.stream().collect(Collectors.toSet());
 
@@ -48,12 +48,12 @@ public class InputBean implements Serializable {
     public void validateFormInputs() throws ValidationException {
         // X VALIDATION
         if (x == null || !xOptionsSet.contains(x)) {
-            throw new ValidationException("For form submissions, X must be one of the selected values: -3 to 5.");
+            throw new ValidationException("For form submissions, X must be one of the selected values: -5 to 3.");
         }
 
         // Y VALIDATION
-        if (y == null || y < -3.0 || y > 5.0) {
-            throw new ValidationException("For form submissions, Y must be between -3 and 5.");
+        if (y == null || y < -3.0 || y > 3.0) {
+            throw new ValidationException("For form submissions, Y must be between -3 and 3.");
         }
 
         // R Validation is always strict

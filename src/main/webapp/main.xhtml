@@ -56,10 +56,21 @@
 
                     <!-- Y Value Input -->
                     <h:panelGroup layout="block" style="margin-bottom: 20px;">
-                        <h:outputLabel value="Y Coordinate (-3..5):" for="y_input" style="color: #ccc; display:block; margin-bottom:5px;"/>
-                        <p:inputText id="y_input" value="#{inputBean.y}" required="true" style="width: 100%;">
-                            <f:validateDoubleRange minimum="-3.0" maximum="5.0" />
+                        <h:outputLabel value="Y Coordinate (-3..3):" for="y_input"
+                                       style="color: #ccc; display:block; margin-bottom:5px;"/>
+
+                        <p:inputText id="y_input" value="#{inputBean.y}" required="true" style="width: 100%;"
+                                     placeholder="e.g. 1.5"
+                                     converterMessage="Y must be a number from -3 to 3"
+                                     validatorMessage="Y must be a number from -3 to 3"
+                                     requiredMessage="Please enter a Y value">
+
+                            <f:validateDoubleRange minimum="-3.0" maximum="3.0" />
+
                         </p:inputText>
+
+                        <p:message for="y_input" display="text" showSummary="false" showDetail="true"
+                                   style="color: #ef4444; margin-top: 5px;"/>
                     </h:panelGroup>
 
                     <!-- X Value Selection -->
