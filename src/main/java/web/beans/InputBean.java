@@ -97,7 +97,8 @@ public class InputBean implements Serializable {
     public Double getCanvasY() { return canvasY; }
     public void setCanvasY(Double canvasY) { this.canvasY = canvasY; }
 
-    public boolean isCanvasSubmission() { return isCanvasSubmission; }
+
+    // removed unused getter
     public void setCanvasSubmission(boolean isCanvasSubmission) { this.isCanvasSubmission = isCanvasSubmission; }
 
     public List<Double> getrOptions() { return rOptions; }
