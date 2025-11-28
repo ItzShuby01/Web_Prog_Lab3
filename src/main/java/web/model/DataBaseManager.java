@@ -3,9 +3,12 @@ package web.model;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.enterprise.context.ApplicationScoped;
+
 
 // Handles all raw JDBC interactions with the PostgreSQL database.
 
+@ApplicationScoped
 public class DataBaseManager {
 
     // My psql studs database credentials
