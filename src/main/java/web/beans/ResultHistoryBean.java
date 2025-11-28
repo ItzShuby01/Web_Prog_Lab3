@@ -3,6 +3,7 @@ package web.beans;
 import com.google.gson.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import web.model.CalculationResult;
 import web.model.DataBaseManager;
@@ -22,13 +23,14 @@ public class ResultHistoryBean implements Serializable {
 
     // Thread-safe list to hold the in-memory copy of all results,
     private CopyOnWriteArrayList<CalculationResult> results;
+
+    @Inject
     private DataBaseManager dao;
 
 
     // Initializes the bean after construction. Then the data is loaded from the PostgreSQL db using the ResultDao.
     @PostConstruct
     public void init() {
-        this.dao = new DataBaseManager();
 
         // Load existing results from the DB on application start
         List<CalculationResult> loadedResults = dao.loadAllResults();
