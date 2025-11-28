@@ -9,7 +9,7 @@ import java.util.List;
 public class DataBaseManager {
 
     // My psql studs database credentials
-    private static final String URL = "jdbc:postgresql://pg:5432/studs"; // "jdbc:postgresql://localhost:5555/studs"; // Port 5555 for the tunnel
+    private static final String URL =  System.getenv("DB_URL"); //"jdbc:postgresql://pg:5432/studs"; // "jdbc:postgresql://localhost:5555/studs"; // Port 5555 for the tunnel
     private static final String USER = System.getenv("DB_USER");
     private static final String PASSWORD =  System.getenv("DB_PASSWORD");
 
