@@ -29,14 +29,13 @@
                     <!-- HIDDEN INPUTS -->
                     <h:inputHidden id="canvas_x" value="#{inputBean.canvasX}"/>
                     <h:inputHidden id="canvas_y" value="#{inputBean.canvasY}"/>
-                    <h:inputHidden id="canvas_r" value="#{inputBean.r}"/>
                     <h:inputHidden id="is_canvas_submit" value="#{inputBean.canvasSubmission}"/>
 
                     <!-- CANVAS HANDLER -->
                     <p:remoteCommand name="processCanvasClick"
                                      actionListener="#{checkBean.checkCanvas}"
                                      update=":results-table-container form:p-messages :graph-panel"
-                                     process="@this canvas_x canvas_y canvas_r is_canvas_submit"
+                                     process="@this canvas_x canvas_y is_canvas_submit"
                                      oncomplete="initGraph()" />
 
                     <!-- R Value Selection -->

@@ -8,7 +8,6 @@ window.currentPoints = [];
 const FORM_ID = 'form';
 const ID_CANVAS_X = FORM_ID + ':canvas_x';
 const ID_CANVAS_Y = FORM_ID + ':canvas_y';
-const ID_CANVAS_R = FORM_ID + ':canvas_r';
 const ID_IS_CANVAS = FORM_ID + ':is_canvas_submit';
 
 
@@ -57,7 +56,6 @@ function initGraph() {
         // Update Hidden Inputs
         document.getElementById(ID_CANVAS_X).value = valX.toFixed(6);
         document.getElementById(ID_CANVAS_Y).value = valY.toFixed(6);
-        document.getElementById(ID_CANVAS_R).value = rVal;
 
         // Set flag for Bean
         document.getElementById(ID_IS_CANVAS).value = "true";
