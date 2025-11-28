@@ -8,7 +8,6 @@ window.currentPoints = [];
 const FORM_ID = 'form';
 const ID_CANVAS_X = FORM_ID + ':canvas_x';
 const ID_CANVAS_Y = FORM_ID + ':canvas_y';
-const ID_IS_CANVAS = FORM_ID + ':is_canvas_submit';
 
 
 // Main function to draw the graph and bind events.
@@ -56,9 +55,6 @@ function initGraph() {
         // Update Hidden Inputs
         document.getElementById(ID_CANVAS_X).value = valX.toFixed(6);
         document.getElementById(ID_CANVAS_Y).value = valY.toFixed(6);
-
-        // Set flag for Bean
-        document.getElementById(ID_IS_CANVAS).value = "true";
 
         // Call PrimeFaces RemoteCommand
         if (typeof processCanvasClick === 'function') {

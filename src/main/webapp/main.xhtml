@@ -29,13 +29,12 @@
                     <!-- HIDDEN INPUTS -->
                     <h:inputHidden id="canvas_x" value="#{inputBean.canvasX}"/>
                     <h:inputHidden id="canvas_y" value="#{inputBean.canvasY}"/>
-                    <h:inputHidden id="is_canvas_submit" value="#{inputBean.canvasSubmission}"/>
 
                     <!-- CANVAS HANDLER -->
                     <p:remoteCommand name="processCanvasClick"
                                      actionListener="#{checkBean.checkCanvas}"
                                      update=":results-table-container form:p-messages :graph-panel"
-                                     process="@this canvas_x canvas_y is_canvas_submit"
+                                     process="@this canvas_x canvas_y"
                                      oncomplete="initGraph()" />
 
                     <!-- R Value Selection -->
@@ -45,7 +44,7 @@
                             <f:selectItems value="#{inputBean.rOptions}" var="rVal" itemLabel="#{rVal}" itemValue="#{rVal}" />
                             <f:validateLongRange minimum="1" maximum="5" />
                             <p:ajax event="change" listener="#{inputBean.validateR}"
-                                    update="form:p-messages :graph-panel @form:canvas_r"
+                                    update="form:p-messages :graph-panel "
                                     process="@this"
                                     oncomplete="initGraph()" />
                         </h:selectOneRadio>
