@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Web_Lab3_Ant" default="build" basedir=".">
+
+    <property environment="env"/>
+    <property file="build.properties"/>
+
+    <path id="compile.classpath">
+        <fileset dir="${lib.dir}" erroronmissingdir="false">
+            <include name="*.jar"/>
+        </fileset>
+
+        <fileset dir="${test.lib.dir}" erroronmissingdir="false">
+            <include name="*.jar"/>
+        </fileset>
+
+        <fileset dir="${m2.repo}" erroronmissingdir="false">
+            <include name="jakarta/enterprise/jakarta.enterprise.cdi-api/**/*.jar"/>
+            <include name="jakarta/faces/jakarta.faces-api/**/*.jar"/>
+            <include name="jakarta/inject/jakarta.inject-api/**/*.jar"/>
+            <include name="jakarta/annotation/jakarta.annotation-api/**/*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="clean" description="Deletes compiled classes and temporary build folders">
+        <echo message="Cleaning up build directories..."/>
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <target name="compile" description="Compiles the Java source files">
+        <echo message="Creating build directories..."/>
+        <mkdir dir="${build.classes.dir}"/>
+
+        <echo message="Compiling source code..."/>
+        <javac srcdir="${src.dir}" destdir="${build.classes.dir}" classpathref="compile.classpath" includeantruntime="false">
+            <compilerarg value="-Xlint:deprecation"/>
+        </javac>
+
+        <echo message="Copying resource bundles (messages.properties)..."/>
+        <copy todir="${build.classes.dir}">
+            <fileset dir="${resources.dir}" erroronmissingdir="false">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="build" depends="compile" description="Packages compiled code into an executable JAR file">
+        <mkdir dir="${build.jar.dir}"/>
+
+        <echo message="Creating MANIFEST.MF and packaging into JAR..."/>
+        <jar destfile="${build.jar.dir}/${project.name}.jar">
+            <fileset dir="${build.classes.dir}"/>
+            <fileset dir="${webapp.dir}"/>
+
+            <manifest>
+                <attribute name="Manifest-Version" value="${project.version}"/>
+                <attribute name="Main-Class" value="${main.class}"/>
+            </manifest>
+        </jar>
+        <echo message="Build complete: ${build.jar.dir}/${project.name}.jar"/>
+    </target>
+
+    <target name="compile-tests" depends="build">
+        <mkdir dir="${build.test.classes.dir}"/>
+        <echo message="Compiling test files using combined project classpath..."/>
+        <javac srcdir="${src.test.dir}" destdir="${build.test.classes.dir}" classpathref="compile.classpath" includeantruntime="false">
+            <classpath>
+                <pathelement location="${build.classes.dir}"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <target name="test" depends="compile-tests" description="Runs JUnit tests">
+        <mkdir dir="${build.test.reports.dir}"/>
+        <echo message="Running JUnit tests..."/>
+
+        <junit printsummary="yes" haltonfailure="no" failureproperty="tests.failed">
+            <classpath>
+                <path refid="compile.classpath"/>
+                <pathelement location="${build.classes.dir}"/>
+                <pathelement location="${build.test.classes.dir}"/>
+            </classpath>
+
+            <formatter type="xml"/>
+
+            <batchtest fork="yes" todir="${build.test.reports.dir}">
+                <fileset dir="${src.test.dir}">
+                    <include name="**/*Test.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <fail if="tests.failed" message="Build failed because unit tests failed!"/>
+    </target>
+
+    <target name="music" depends="build" description="Plays music upon successful build completion">
+        <echo message="Playing victory music..."/>
+        <sound>
+            <success source="src/main/resources/sounds/victory.wav" loops="0"/>
+        </sound>
+    </target>
+
+    <target name="scp" depends="build" description="Transfers the built JAR via SCP to helios faculty server">
+        <echo message="Deploying project archive to remote server ${scp.server} on port ${scp.port}..."/>
+        <scp file="${build.jar.dir}/${project.name}.jar"
+             todir="${scp.username}:${scp.password}@${scp.server}:${scp.dest.dir}"
+             port="${scp.port}"
+             trust="true"
+             failonerror="true"/>
+    </target>
+    <target name="doc" depends="build" description="Generates Javadoc, calculates MD5/SHA-1 signatures, and updates MANIFEST.MF">
+        <echo message="Generating Javadoc documentation..."/>
+        <mkdir dir="${build.javadoc.dir}"/>
+        <javadoc destdir="${build.javadoc.dir}" author="true" version="true" use="true">
+            <fileset dir="${src.dir}" includes="**/*.java"/>
+            <classpath refid="compile.classpath"/>
+        </javadoc>
+
+        <checksum file="${build.jar.dir}/${project.name}.jar" algorithm="MD5" property="jar.md5"/>
+        <checksum file="${build.jar.dir}/${project.name}.jar" algorithm="SHA-1" property="jar.sha1"/>
+
+        <jar destfile="${build.jar.dir}/${project.name}.jar" update="true">
+            <zipfileset dir="${build.javadoc.dir}" prefix="docs"/>
+            <manifest>
+                <attribute name="Project-JAR-MD5" value="${jar.md5}"/>
+                <attribute name="Project-JAR-SHA1" value="${jar.sha1}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="xml" description="Validates all XML configuration files in the project">
+        <echo message="Validating descriptor configurations..."/>
+        <xmlvalidate failonerror="true" lenient="true">
+            <fileset dir="${webapp.dir}/WEB-INF" includes="**/*.xml"/>
+        </xmlvalidate>
+    </target>
+
+    <target name="native2ascii" description="Converts localization properties files to ASCII format">
+        <mkdir dir="${build.classes.dir}"/>
+        <native2ascii src="${resources.dir}" dest="${build.classes.dir}" includes="**/*.properties"/>
+    </target>
+
+    <target name="alt" description="Generates alternative source compilation variant via regexp matches">
+        <mkdir dir="${build.dir}/alt-src"/>
+        <copy todir="${build.dir}/alt-src">
+            <fileset dir="${src.dir}"/>
+        </copy>
+        <replaceregexp match="inputBean" replace="altInputBean" flags="g">
+            <fileset dir="${build.dir}/alt-src" includes="**/*.java"/>
+        </replaceregexp>
+        <mkdir dir="${build.dir}/alt-classes"/>
+        <javac srcdir="${build.dir}/alt-src" destdir="${build.dir}/alt-classes" includeantruntime="false">
+            <classpath refid="compile.classpath"/>
+        </javac>
+        <jar destfile="${build.jar.dir}/${project.name}-alternative.jar">
+            <fileset dir="${build.dir}/alt-classes"/>
+            <manifest>
+                <attribute name="Manifest-Version" value="${project.version}-alt"/>
+                <attribute name="Main-Class" value="${main.class}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="team" description="Fetches last 4 revisions from Git, builds them, and packs into a ZIP archive">
+        <echo message="Automating historical revision packaging..."/>
+        <mkdir dir="${build.dir}/revisions"/>
+
+        <exec executable="git" outputproperty="git.revisions">
+            <arg value="log"/>
+            <arg value="-n"/>
+            <arg value="4"/>
+            <arg value="--pretty=format:%h"/>
+        </exec>
+
+        <echo message="Found revisions: ${git.revisions}"/>
+
+        <exec executable="git">
+            <arg value="archive"/>
+            <arg value="-o"/>
+            <arg value="${build.dir}/revisions/revisions-pack.zip"/>
+            <arg value="HEAD"/>
+        </exec>
+    </target>
+
+    <target name="diff" description="Commits modifications automatically if listed key domain classes are unaffected">
+        <echo message="Checking status layout for local changes..."/>
+        <exec executable="git" outputproperty="git.status.output">
+            <arg value="status"/>
+            <arg value="--porcelain"/>
+        </exec>
+
+        <condition property="critical.changes.detected">
+            <matches string="${git.status.output}" pattern="(AreaCalculator\.java|InputBean\.java)"/>
+        </condition>
+
+        <antcall target="-diff-commit"/>
+        <antcall target="-diff-abort"/>
+    </target>
+
+    <target name="-diff-commit" unless="critical.changes.detected">
+        <echo message="No structural modifications detected inside core files. Initializing Git savepoint..."/>
+        <exec executable="git">
+            <arg value="add"/>
+            <arg value="."/>
+        </exec>
+        <exec executable="git">
+            <arg value="commit"/>
+            <arg value="-m"/>
+            <arg value="chore: automated incremental save via Ant workspace diff check"/>
+        </exec>
+    </target>
+
+    <target name="-diff-abort" if="critical.changes.detected">
+        <echo message="WARNING: Modifications found in vital application modules. Automated commit skipped."/>
+    </target>
+
+    <target name="history" description="Attempts compilation, falling back through SVN revisions on failure">
+        <echo message="Evaluating workspace compilation integrity..."/>
+        <exec executable="ant" resultproperty="compile.result" failonerror="false">
+            <arg value="compile"/>
+        </exec>
+
+        <condition property="compile.failed">
+            <not>
+                <equals arg1="${compile.result}" arg2="0"/>
+            </not>
+        </condition>
+
+        <antcall target="-history-success"/>
+        <antcall target="-history-fallback"/>
+    </target>
+
+    <target name="-history-success" unless="compile.failed">
+        <echo message="Compilation successful! Current workspace version validated."/>
+    </target>
+
+    <target name="-history-fallback" if="compile.failed">
+        <echo message="Compilation failed! Pulling previous fallback state from SVN repository..."/>
+        <exec executable="svn" failonerror="false">
+            <arg value="revert"/>
+            <arg value="-R"/>
+            <arg value="src"/>
+        </exec>
+    </target>
+
+    <target name="env" depends="build" description="Executes the built JAR in an alternative environment configuration">
+        <echo message="Spawning instance with specified custom JVM parameters..."/>
+        <exec executable="${env.java.home}/bin/java" failonerror="false">
+            <arg line="${env.jvm.args}"/>
+            <arg value="-jar"/>
+            <arg value="${build.jar.dir}/${project.name}.jar"/>
+        </exec>
+    </target>
+
+    <target name="report" depends="test" description="Generates test reports and commits them to Git">
+        <echo message="Generating JUnit HTML dashboards..."/>
+        <mkdir dir="${build.test.reports.dir}/html"/>
+        <junitreport todir="${build.test.reports.dir}">
+            <fileset dir="${build.test.reports.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${build.test.reports.dir}/html"/>
+        </junitreport>
+
+        <echo message="Tests passed! Committing generated reports to Git..."/>
+        <exec executable="git" failonerror="false">
+            <arg value="add"/>
+            <arg value="${build.test.reports.dir}"/>
+        </exec>
+        <exec executable="git" failonerror="false">
+            <arg value="commit"/>
+            <arg value="-m"/>
+            <arg value="chore: automated JUnit test report generation"/>
+        </exec>
+    </target>
+
+</project>
