@@ -34,6 +34,7 @@ build/
 .svn/
 lib/
 src/main/resources/sounds
+META-INF
 
 
 ### VS Code ###
