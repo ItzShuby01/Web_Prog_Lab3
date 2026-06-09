@@ -52,6 +52,12 @@ public class CheckAreaBean implements Serializable {
 
     // Common logic to avoid code duplication
     private void processCalculation(Double x, Double y, Double r) {
+        //  TEMPORARY CPU BOTTLENECK FOR REPORT PROFILING
+        long burnUntil = System.currentTimeMillis() + 5000;
+        while (System.currentTimeMillis() < burnUntil) {
+            double dummy = Math.sin(0.456) * Math.cos(0.123);
+        }
+
         try {
             if (x == null || y == null || r == null) {
                 throw new ValidationException("Critical input values are missing.");
@@ -63,6 +69,14 @@ public class CheckAreaBean implements Serializable {
 
             CalculationResult newResult = new CalculationResult(x, y, r, hit, (endTime - startTime));
             resultBean.addResult(newResult);
+
+            // ===  JMX MBEAN TRACKING HOOKS ===
+            if (web.util.JmxInitializer.getPointsCounter() != null) {
+                web.util.JmxInitializer.getPointsCounter().registerNewPoint(hit);
+            }
+            if (web.util.JmxInitializer.getClickTimer() != null) {
+                web.util.JmxInitializer.getClickTimer().registerClick();
+            }
 
         } catch (Exception e) {
             addErrorMessage("An unexpected error occurred during calculation.");

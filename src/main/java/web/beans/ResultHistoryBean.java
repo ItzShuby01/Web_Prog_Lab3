@@ -54,6 +54,11 @@ public class ResultHistoryBean implements Serializable {
 
         // then clear in-memory list
         results.clear();
+
+        //  JMX MBEAN RESET SYNC
+        if (web.util.JmxInitializer.getPointsCounter() != null) {
+            web.util.JmxInitializer.getPointsCounter().reset();
+        }
     }
 
     // Provides the list of results for display in the main page table (main.xhtml).
